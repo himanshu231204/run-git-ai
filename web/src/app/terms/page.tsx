@@ -133,8 +133,8 @@ export default function TermsPage() {
               <h2 className="text-2xl font-semibold text-foreground mb-4">13. Contact Us</h2>
               <p className="text-muted-foreground">
                 If you have any questions about these Terms, please contact us at{' '}
-                <a href="mailto:support@run-git.dev" className="text-primary hover:underline">
-                  support@run-git.dev
+                <a href="mailto:himanshu231204@gmail.com" className="text-primary hover:underline">
+                  himanshu231204@gmail.com
                 </a>
               </p>
             </section>

@@ -122,8 +122,8 @@ export default function PrivacyPage() {
               </ul>
               <p className="text-muted-foreground leading-relaxed mt-4">
                 To exercise these rights, please contact us at{' '}
-                <a href="mailto:support@run-git.dev" className="text-primary hover:underline">
-                  support@run-git.dev
+                <a href="mailto:himanshu231204@gmail.com" className="text-primary hover:underline">
+                  himanshu231204@gmail.com
                 </a>
                 . We will respond to your request within 30 days.
               </p>
@@ -163,7 +163,7 @@ export default function PrivacyPage() {
                 For questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2 mt-4">
-                <li>Email: <a href="mailto:support@run-git.dev" className="text-primary hover:underline">support@run-git.dev</a></li>
+                <li>Email: <a href="mailto:himanshu231204@gmail.com" className="text-primary hover:underline">himanshu231204@gmail.com</a></li>
               </ul>
             </section>
           </div>
