@@ -31,6 +31,9 @@ yarn-error.log*
 # temporary folders
 .tmp/
 
+# old web folder (legacy)
+web/
+
 # opencode config
 .opencode/
 
