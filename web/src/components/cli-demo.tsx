@@ -1,103 +1,119 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
-interface CliFeature {
-  icon: string;
-  text: string;
-  shortcut: string;
-  description: string;
-  selected?: boolean;
+interface TerminalLine {
+  type: "input" | "output" | "success" | "info" | "error" | "command";
+  content: string;
+  delay?: number;
 }
 
-interface SubFeature {
-  icon: string;
-  text: string;
-  shortcut: string;
-  description: string;
-  selected?: boolean;
-}
-
-const cliFeatures: CliFeature[] = [
-  { icon: "🚀", text: "Quick Push", shortcut: "[p]", description: "Push changes instantly" },
-  { icon: "🆕", text: "Create New Repo", shortcut: "[n]", description: "Create GitHub repository" },
-  { icon: "📥", text: "Clone Repo", shortcut: "[c]", description: "Clone existing repository" },
-  { icon: "🌿", text: "Branch Ops", shortcut: "[b]", description: "Branch management", selected: true },
-  { icon: "📊", text: "Status/History", shortcut: "[s]", description: "View status & logs" },
-  { icon: "🌳", text: "Commit Graph", shortcut: "[g]", description: "Visual commit tree & diff" },
-  { icon: "🔄", text: "Sync", shortcut: "[y]", description: "Pull & push" },
-  { icon: "⚙️", text: "Settings", shortcut: "[c]", description: "Configuration" },
-  { icon: "🤖", text: "AI Assistant", shortcut: "[i]", description: "AI commit, PR & review" },
-  { icon: "🔧", text: "Advanced Tools", shortcut: "[a]", description: "Stash, undo, etc." },
-  { icon: "📚", text: "Help & Docs", shortcut: "[h]", description: "Keyboard shortcuts" },
-];
-
-const branchOpsFeatures: SubFeature[] = [
-  { icon: "📋", text: "List Branches", shortcut: "[l]", description: "View all branches", selected: true },
-  { icon: "➕", text: "Create Branch", shortcut: "[n]", description: "Create new branch" },
-  { icon: "🔄", text: "Switch Branch", shortcut: "[s]", description: "Switch to branch" },
-  { icon: "🗑️", text: "Delete Branch", shortcut: "[d]", description: "Delete a branch" },
-  { icon: "🔀", text: "Merge Branch", shortcut: "[m]", description: "Merge branch" },
-  { icon: "⬅️", text: "Back", shortcut: "[b]", description: "Return to main menu" },
+const terminalLines: TerminalLine[] = [
+  { type: "info", content: "╭──────────────────────────────────────────────────────────────────╮", delay: 0 },
+  { type: "info", content: "│  ⚡ RUN-GIT - Git Operations Made Simple              │", delay: 50 },
+  { type: "info", content: "╰──────────────────────────────────────────────────────────────────╯", delay: 50 },
+  { type: "output", content: "", delay: 200 },
+  { type: "command", content: "$ run-git --help", delay: 400 },
+  { type: "output", content: "", delay: 100 },
+  { type: "info", content: "━━━ AVAILABLE COMMANDS ━━━", delay: 150 },
+  { type: "output", content: "", delay: 100 },
+  { type: "success", content: "🚀  Quick Push        [p]  Push changes instantly", delay: 100 },
+  { type: "success", content: "🆕  Create Repo      [n]  Create GitHub repository", delay: 80 },
+  { type: "success", content: "📥  Clone Repo       [c]  Clone existing repo", delay: 80 },
+  { type: "success", content: "🌿  Branch Ops       [b]  Branch management", delay: 80 },
+  { type: "success", content: "📊  Status           [s]  View status & logs", delay: 80 },
+  { type: "success", content: "🌳  Commit Graph    [g]  Visual commit tree", delay: 80 },
+  { type: "success", content: "🔄  Sync             [y]  Pull & push", delay: 80 },
+  { type: "success", content: "⚙️  Settings         [c]  Configuration", delay: 80 },
+  { type: "success", content: "🤖  AI Assistant    [i]  AI commit, PR & review", delay: 80 },
+  { type: "success", content: "🔧  Advanced         [a]  Stash, undo, etc.", delay: 80 },
+  { type: "success", content: "📚  Help            [h]  Keyboard shortcuts", delay: 80 },
+  { type: "output", content: "", delay: 100 },
+  { type: "info", content: "━━━ QUICK START ━━━", delay: 150 },
+  { type: "output", content: "", delay: 100 },
+  { type: "command", content: "$ pip install run-git", delay: 100 },
+  { type: "success", content: "✓ Installed successfully!", delay: 200 },
+  { type: "output", content: "", delay: 100 },
+  { type: "command", content: "$ run-git ai commit", delay: 100 },
+  { type: "output", content: "  Analyzing changes...", delay: 150 },
+  { type: "success", content: "  ✓ feat(auth): implement JWT login system", delay: 100 },
+  { type: "output", content: "    - added login API endpoint", delay: 50 },
+  { type: "output", content: "    - token validation middleware", delay: 50 },
+  { type: "output", content: "    - improved security", delay: 50 },
+  { type: "output", content: "", delay: 100 },
+  { type: "info", content: "Press [q] to exit or [h] for more commands", delay: 200 },
 ];
 
 export function CliDemo() {
-  const [showAscii, setShowAscii] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
-  const [showSubMenu, setShowSubMenu] = useState(false);
-  const [visibleItems, setVisibleItems] = useState<number[]>([]);
-  const [subMenuItems, setSubMenuItems] = useState<number[]>([]);
-  const [phase, setPhase] = useState(0);
+  const [displayedLines, setDisplayedLines] = useState<TerminalLine[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const timer1 = setTimeout(() => setShowAscii(true), 100);
-    const timer2 = setTimeout(() => setPhase(1), 800);
-    const timer3 = setTimeout(() => setPhase(2), 1200);
-    const timer4 = setTimeout(() => setShowMenu(true), 1600);
-    const timer5 = setTimeout(() => setShowSubMenu(true), 3500);
+    if (currentIndex >= terminalLines.length) {
+      setIsTyping(false);
+      return;
+    }
 
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-      clearTimeout(timer4);
-      clearTimeout(timer5);
-    };
-  }, []);
+    const currentLine = terminalLines[currentIndex];
+    const delay = currentLine.delay || 50;
 
-  useEffect(() => {
-    if (!showMenu) return;
-    cliFeatures.forEach((_, index) => {
+    if (currentLine.type === "command" || currentLine.type === "input") {
+      // Typing effect for commands
+      if (charIndex < currentLine.content.length) {
+        const timer = setTimeout(() => {
+          setCharIndex((prev) => prev + 1);
+        }, 30);
+        return () => clearTimeout(timer);
+      } else {
+        const timer = setTimeout(() => {
+          setDisplayedLines((prev) => [...prev, { ...currentLine, content: currentLine.content }]);
+          setCurrentIndex((prev) => prev + 1);
+          setCharIndex(0);
+        }, delay);
+        return () => clearTimeout(timer);
+      }
+    } else {
+      // Instant display for other lines
       const timer = setTimeout(() => {
-        setVisibleItems((prev) => [...prev, index]);
-      }, 80 * (index + 1));
+        setDisplayedLines((prev) => [...prev, currentLine]);
+        setCurrentIndex((prev) => prev + 1);
+      }, delay);
       return () => clearTimeout(timer);
-    });
-  }, [showMenu]);
+    }
+  }, [currentIndex, charIndex]);
 
   useEffect(() => {
-    if (!showSubMenu) return;
-    branchOpsFeatures.forEach((_, index) => {
-      const timer = setTimeout(() => {
-        setSubMenuItems((prev) => [...prev, index]);
-      }, 100 * (index + 1));
-      return () => clearTimeout(timer);
-    });
-  }, [showSubMenu]);
+    // Auto scroll to bottom
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [displayedLines]);
 
   const restartAnimation = () => {
-    setShowAscii(false);
-    setShowMenu(false);
-    setShowSubMenu(false);
-    setVisibleItems([]);
-    setSubMenuItems([]);
-    setPhase(0);
-    
-    setTimeout(() => setShowAscii(true), 100);
-    setTimeout(() => setPhase(1), 800);
-    setTimeout(() => setPhase(2), 1200);
-    setTimeout(() => setShowMenu(true), 1600);
-    setTimeout(() => setShowSubMenu(true), 3500);
+    setDisplayedLines([]);
+    setCurrentIndex(0);
+    setCharIndex(0);
+    setIsTyping(true);
+  };
+
+  const getLineColor = (type: string) => {
+    switch (type) {
+      case "command":
+      case "input":
+        return { color: "#22c55e", prefix: "$ " };
+      case "success":
+        return { color: "#22c55e", prefix: "" };
+      case "error":
+        return { color: "#ef4444", prefix: "" };
+      case "info":
+        return { color: "#a78bfa", prefix: "" };
+      case "output":
+      default:
+        return { color: "#9ca3af", prefix: "" };
+    }
   };
 
   return (
@@ -106,205 +122,123 @@ export function CliDemo() {
         onClick={restartAnimation}
         className="rounded-xl overflow-hidden cursor-pointer group"
         style={{
-          background: 'linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0px rgba(255, 255, 255, 0.05)'
+          background: "#0d1117",
+          boxShadow: '0 0 0 1px rgba(255,255,255,0.1), 0 20px 40px rgba(0,0,0,0.4)'
         }}
       >
-        {/* Terminal Header - macOS style */}
+        {/* Terminal Header */}
         <div 
           className="flex items-center justify-between px-4 py-3"
           style={{ 
-            background: 'linear-gradient(180deg, #2d2d44 0%, #1a1a2e 100%)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+            background: "#161b22",
+            borderBottom: "1px solid rgba(255,255,255,0.1)"
           }}
         >
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{ background: '#ff5f57' }}></div>
-            <div className="w-3 h-3 rounded-full" style={{ background: '#febc2e' }}></div>
-            <div className="w-3 h-3 rounded-full" style={{ background: '#28c840' }}></div>
+            <div className="w-3 h-3 rounded-full" style={{ background: "#ff5f57" }}></div>
+            <div className="w-3 h-3 rounded-full" style={{ background: "#febc2e" }}></div>
+            <div className="w-3 h-3 rounded-full" style={{ background: "#28c840" }}></div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs" style={{ color: "#8b949e" }}>run-git</span>
             <span 
-              className="text-xs px-3 py-1 rounded-full transition-all duration-300 group-hover:opacity-100 opacity-70"
+              className="text-xs px-2 py-0.5 rounded transition-opacity duration-300"
               style={{ 
-                background: 'rgba(99, 102, 241, 0.2)', 
-                color: '#818cf8',
-                border: '1px solid rgba(99, 102, 241, 0.3)'
+                background: "rgba(167, 139, 250, 0.2)", 
+                color: "#a78bfa",
+                opacity: isTyping ? 1 : 0.5
               }}
             >
-              ⚡ RUN-GIT Terminal
+              {isTyping ? "running..." : "completed"}
             </span>
           </div>
           <div className="w-20"></div>
         </div>
 
-        {/* CLI Content */}
-        <div className="p-4 sm:p-6 font-mono text-xs sm:text-sm overflow-x-auto">
-          {/* ASCII Art */}
-          <pre 
-            className={`font-bold mb-4 leading-tight transition-opacity duration-700 ${showAscii ? 'opacity-100' : 'opacity-0'}`}
-            style={{ color: '#a78bfa' }}
-          >{`██████╗ ██╗   ██╗██╗   ██╗      ██████╗ ██╗████████╗
-██╔══██╗██║   ██║██║   ██║     ██╔════╝ ██║╚══██╔══╝
-██████╔╝██║   ██║██║   ██║     ██║  ███╗██║   ██║   
-██╔══██╗██║   ██║██║   ██║     ██║   ██║██║   ██║   
-██║  ██║╚██████╔╝██║   ██║     ╚██████╔╝██║   ██║   
-╚═╝  ╚═╝ ╚═════╝ ╚═╝   ╚═╝      ╚═════╝ ╚═╝   ╚═╝`}</pre>
-
-          {/* Tagline */}
-          <div className={`text-center mb-4 transition-opacity duration-500 ${phase >= 1 ? 'opacity-100' : 'opacity-0'}`}>
-            <span className="text-lg font-bold" style={{ color: '#a78bfa' }}>⚡ RUN-GIT ⚡</span>
-          </div>
-          <div className={`text-center mb-4 transition-opacity duration-500 ${phase >= 1 ? 'opacity-100' : 'opacity-0'}`} style={{ color: '#6b7280' }}>
-            Git Operations, Simplified
-          </div>
-          <div className={`text-center mb-4 transition-opacity duration-500 ${phase >= 2 ? 'opacity-100' : 'opacity-0'}`} style={{ color: '#6b7280' }}>
-            One Command • Zero Hassle • Full Control
-          </div>
-
-          {/* Menu Border */}
-          <div className={`my-4 transition-all duration-500 ${phase >= 1 ? 'opacity-100' : 'opacity-0'}`}>
-            <div 
-              className="py-2 text-center text-xs"
-              style={{ 
-                borderTop: '1px solid rgba(167, 139, 250, 0.3)',
-                borderBottom: '1px solid rgba(167, 139, 250, 0.3)',
-                color: '#a78bfa'
-              }}
-            >
-              ╔═══════════════════════════════════════════════════════ 🚀 MAIN MENU ═══════════════════════════════════════════════════════╗
-            </div>
-          </div>
-
-          {/* Welcome Text */}
-          <div className={`text-center mb-4 transition-opacity duration-500 ${phase >= 2 ? 'opacity-100' : 'opacity-0'}`}>
-            <div style={{ color: '#e5e7eb' }}>Welcome to run-git</div>
-            <div className="text-xs" style={{ color: '#6b7280' }}>Git operations made effortless</div>
-            <div className="mt-2" style={{ color: '#a78bfa' }}>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
-          </div>
-
-          {/* Features */}
-          <div className={`space-y-0.5 transition-opacity duration-300 ${showMenu ? 'opacity-100' : 'opacity-0'}`}>
-            {cliFeatures.map((feature, index) => (
-              <div
-                key={index}
-                className={`flex items-center gap-3 py-1.5 px-3 rounded-lg transition-all duration-300 ${
-                  visibleItems.includes(index) ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
-                } ${feature.selected ? "" : ""}`}
-                style={{
-                  background: feature.selected ? 'rgba(99, 102, 241, 0.15)' : 'transparent'
+        {/* Terminal Content */}
+        <div 
+          ref={containerRef}
+          className="p-4 sm:p-6 font-mono text-xs sm:text-sm overflow-x-auto max-h-[500px] overflow-y-auto"
+          style={{ color: "#c9d1d9" }}
+        >
+          {displayedLines.map((line, index) => {
+            const style = getLineColor(line.type);
+            const content = line.type === "command" || line.type === "input" 
+              ? line.content.substring(0, charIndex) 
+              : line.content;
+            
+            return (
+              <div 
+                key={index} 
+                className="whitespace-pre"
+                style={{ 
+                  color: style.color,
+                  lineHeight: "1.8",
+                  minHeight: "1.8em"
                 }}
               >
-                {feature.selected ? (
-                  <span style={{ color: '#a78bfa' }}>▶ </span>
-                ) : (
-                  <span className="w-3"></span>
-                )}
-                <span className="text-base">{feature.icon}</span>
-                <span 
-                  className="font-medium"
-                  style={{ color: feature.selected ? '#a78bfa' : '#e5e7eb' }}
-                >
-                  {feature.text}
-                </span>
-                <span 
-                  className="px-2 py-0.5 rounded text-xs"
-                  style={{ 
-                    background: 'rgba(167, 139, 250, 0.2)', 
-                    color: '#a78bfa',
-                    border: '1px solid rgba(167, 139, 250, 0.3)'
-                  }}
-                >
-                  {feature.shortcut}
-                </span>
-                <span className="text-xs hidden md:inline" style={{ color: '#6b7280' }}>
-                  - {feature.description}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Branch Ops Submenu */}
-          {showSubMenu && (
-            <div 
-              className={`mt-4 ml-4 pl-4 transition-opacity duration-500 ${showSubMenu ? 'opacity-100' : 'opacity-0'}`}
-              style={{ borderLeft: '2px solid rgba(167, 139, 250, 0.4)' }}
-            >
-              <div className="text-xs mb-2" style={{ color: '#a78bfa' }}>
-                ╭─────────────────────────────────────────────────── 🌿 BRANCH OPERATIONS ───────────────────────────────────────────────────╮
-              </div>
-              <div className="text-xs mb-2" style={{ color: '#e5e7eb' }}>
-                │ Branch Operations
-              </div>
-              <div className="text-xs mb-2" style={{ color: '#6b7280' }}>
-                │ Manage your branches easily
-              </div>
-              <div className="text-xs mb-2" style={{ color: '#a78bfa' }}>
-                ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-              </div>
-              
-              <div className="space-y-0.5">
-                {branchOpsFeatures.map((feature, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center gap-3 py-1.5 px-2 rounded transition-all duration-300 ${
-                      subMenuItems.includes(index) ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
-                    }`}
-                    style={{
-                      background: feature.selected ? 'rgba(99, 102, 241, 0.15)' : 'transparent'
-                    }}
-                  >
-                    {feature.selected ? (
-                      <span style={{ color: '#a78bfa' }}>▶ </span>
-                    ) : (
-                      <span className="w-3"></span>
+                {line.type === "command" || line.type === "input" ? (
+                  <>
+                    <span style={{ color: "#22c55e" }}>$ </span>
+                    {content}
+                    {index === currentIndex - 1 && isTyping && (
+                      <span 
+                        className="animate-pulse" 
+                        style={{ 
+                          background: "#22c55e",
+                          width: "8px",
+                          height: "14px",
+                          display: "inline-block",
+                          verticalAlign: "middle",
+                          marginLeft: "2px"
+                        }}
+                      ></span>
                     )}
-                    <span>{feature.icon}</span>
-                    <span 
-                      className="font-medium"
-                      style={{ color: feature.selected ? '#a78bfa' : '#e5e7eb' }}
-                    >
-                      {feature.text}
-                    </span>
-                    <span 
-                      className="px-2 py-0.5 rounded text-xs"
-                      style={{ 
-                        background: 'rgba(167, 139, 250, 0.2)', 
-                        color: '#a78bfa',
-                        border: '1px solid rgba(167, 139, 250, 0.3)'
-                      }}
-                    >
-                      {feature.shortcut}
-                    </span>
-                    <span className="text-xs hidden md:inline" style={{ color: '#6b7280' }}>
-                      - {feature.description}
-                    </span>
-                  </div>
-                ))}
+                  </>
+                ) : (
+                  content
+                )}
               </div>
+            );
+          })}
+
+          {/* Blinking cursor when done */}
+          {!isTyping && (
+            <div className="flex items-center gap-2 mt-4" style={{ color: "#8b949e" }}>
+              <span style={{ color: "#22c55e" }}>$</span>
+              <span 
+                className="animate-pulse" 
+                style={{ 
+                  background: "#22c55e",
+                  width: "8px",
+                  height: "14px",
+                  display: "inline-block",
+                  verticalAlign: "middle"
+                }}
+              ></span>
             </div>
           )}
+        </div>
 
-          {/* Exit */}
-          <div 
-            className={`mt-4 pt-3 transition-opacity duration-500 ${visibleItems.length > 0 ? 'opacity-100' : 'opacity-0'}`}
-            style={{ borderTop: '1px solid rgba(167, 139, 250, 0.3)' }}
-          >
-            <span style={{ color: '#ef4444' }}>❌</span>
-            <span style={{ color: '#e5e7eb' }} className="ml-2">Exit</span>
-            <span 
-              className="px-2 py-0.5 rounded text-xs ml-2"
-              style={{ 
-                background: 'rgba(167, 139, 250, 0.2)', 
-                color: '#a78bfa',
-                border: '1px solid rgba(167, 139, 250, 0.3)'
-              }}
-            >[q]</span>
+        {/* Terminal Footer */}
+        <div 
+          className="flex items-center justify-between px-4 py-2 text-xs"
+          style={{ 
+            background: "#161b22",
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+            color: "#8b949e"
+          }}
+        >
+          <div className="flex items-center gap-4">
+            <span>▲ ready</span>
+            <span>Python 3.x</span>
           </div>
-
-          {/* Footer hint */}
-          <div className={`text-center mt-4 text-xs transition-opacity duration-500 ${phase >= 2 ? 'opacity-100' : 'opacity-0'}`} style={{ color: '#6b7280' }}>
-            <span style={{ color: '#a78bfa' }}>➜</span> <span style={{ opacity: 0.6 }}>(Use arrow keys)</span>
+          <div className="flex items-center gap-4">
+            <span 
+              className="transition-opacity duration-300 group-hover:opacity-100 opacity-50"
+            >
+              Click to replay ↻
+            </span>
           </div>
         </div>
       </div>
