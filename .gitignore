@@ -1,0 +1,48 @@
+# dependencies
+node_modules/
+/node_modules
+.pnp
+.pnp.*
+
+# build output
+.next/
+out/
+build/
+
+# misc
+.DS_Store
+*.pem
+
+# debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# environment variables
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# vercel
+.vercel
+
+# temporary folders
+.tmp/
+
+# opencode config
+.opencode/
+
+# IDE
+.vscode/
+.idea/
+
+# documentation files (project-specific)
+AGENT.md
+SPEC.md
+SaaS_SPEC.md
+WEBSITE_SPEC.md
+prompt.txt
+*.md
+!README.md
