@@ -402,7 +402,7 @@ export default function DashboardPage() {
                 <div>
                   <strong className="text-foreground">Install the CLI</strong>
                   <p className="text-sm mt-1">
-                    Run: <code className="bg-background px-2 py-1 rounded">npm install -g run-git-ai</code>
+                    Run: <code className="bg-background px-2 py-1 rounded">pip install run-git</code>
                   </p>
                 </div>
               </li>
